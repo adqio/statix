@@ -1,40 +1,39 @@
 defmodule Statix do
   defmacro __using__(_opts) do
     quote location: :keep do
-      {host, port, prefix} = Statix.config(__MODULE__)
-      conn = Statix.Conn.new(host, port)
-      header = [conn.header | prefix]
-      @statix_conn %{conn | header: header, sock: __MODULE__}
+      @statix_conn_key Module.concat(Statix.Conn, __MODULE__)
 
       def connect() do
-        conn = Statix.Conn.open(@statix_conn)
-        Process.register(conn.sock, __MODULE__)
-        :ok
+        {host, port, prefix} = Statix.config(__MODULE__)
+        conn = Statix.Conn.new(host, port)
+        header = [conn.header | prefix]
+        conn = Statix.Conn.open(%{conn | header: header})
+        Application.put_env(:statix, @statix_conn_key, conn)
+      end
+
+      @compile {:inline, [statix_conn: 0]}
+      defp statix_conn() do
+        Application.fetch_env!(:statix, @statix_conn_key)
       end
 
       def increment(key, val \\ "1") do
-        @statix_conn
-        |> Statix.transmit(:counter, key, val)
+        Statix.transmit(statix_conn(), :counter, key, val)
       end
 
       def decrement(key, val \\ "1") do
-        @statix_conn
-        |> Statix.transmit(:counter, key, [?-, to_string(val)])
+        Statix.transmit(statix_conn(), :counter, key, [?-, to_string(val)])
       end
 
       def gauge(key, val) do
-        @statix_conn
-        |> Statix.transmit(:gauge, key, val)
+        Statix.transmit(statix_conn(), :gauge, key, val)
       end
 
       def histogram(key, val) do
-        @statix_conn
-        |> Statix.transmit(:histogram, key, val)
+        Statix.transmit(statix_conn(), :histogram, key, val)
       end
 
       def timing(key, val) do
-        @statix_conn
-        |> Statix.transmit(:timing, key, val)
+        Statix.transmit(statix_conn(), :timing, key, val)
       end
 
       @doc """
@@ -54,8 +53,7 @@ defmodule Statix do
       end
 
       def set(key, val) do
-        @statix_conn
-        |> Statix.transmit(:set, key, val)
+        Statix.transmit(statix_conn(), :set, key, val)
       end
     end
   end
