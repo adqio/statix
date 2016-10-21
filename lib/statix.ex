@@ -5,6 +5,7 @@ defmodule Statix do
       conn = Statix.Conn.new(host, port)
       header = [conn.header | prefix]
       @statix_conn %{conn | header: header, sock: __MODULE__}
+      @prefix prefix
 
       def connect() do
         conn = Statix.Conn.open(@statix_conn)
@@ -36,6 +37,10 @@ defmodule Statix do
         @statix_conn
         |> Statix.transmit(:timing, key, val, options)
       end
+      def multi(type_key_val, options \\ []) do
+        @statix_conn
+        |> Statix.transmit_multi(@prefix, type_key_val,options)
+      end
 
       @doc """
       Measure a function call.
@@ -61,8 +66,15 @@ defmodule Statix do
   end
 
   def transmit(conn, type, key, val,options \\ []) when is_binary(key) or is_list(key) do
-    if options[:sample_rate] || 1 >  :random.uniform do
+    if options[:sample_rate] || 1 >  :rand.uniform do
       Statix.Conn.transmit(conn, type, key, to_string(val), options)
+    else
+      :ok
+    end
+  end
+  def transmit_multi(conn, prefix, type_key_vals, options) do
+    if options[:sample_rate] || 1 >  :random.uniform do
+      Statix.Conn.transmit_multi(conn, prefix, type_key_vals, options)
     else
       :ok
     end

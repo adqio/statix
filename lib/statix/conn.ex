@@ -22,6 +22,12 @@ defmodule Statix.Conn do
     Packet.build(conn.header, type, key, val, options)
     |> transmit(conn.sock)
   end
+  def transmit_multi(%__MODULE__{} = conn, prefix, type_key_vals, options) do
+    [conn.header ,Enum.map(type_key_vals, fn({type,key,val})->
+      [prefix, Packet.build([], type, key, to_string(val), options), "\n"]
+    end)]
+    |> transmit(conn.sock)
+  end
 
   defp transmit(packet, sock) do
     Port.command(sock, packet)
