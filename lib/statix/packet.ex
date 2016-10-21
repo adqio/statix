@@ -15,8 +15,8 @@ defmodule Statix.Packet do
     ]
   end
 
-  def build(header, name, key, val, options) do
-    [header, key, ?:, val,  ?|,  metric_type(name)]
+  def build(name, key, val, options) do
+    [key, ?:, val,  ?|,  metric_type(name)]
     |> set_option(:sample_rate,options[:sample_rate])
     |> set_option(:tags,options[:tags])
 

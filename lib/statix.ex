@@ -3,9 +3,8 @@ defmodule Statix do
     quote location: :keep do
       {host, port, prefix} = Statix.config(__MODULE__)
       conn = Statix.Conn.new(host, port)
-      header = [conn.header | prefix]
-      @statix_conn %{conn | header: header, sock: __MODULE__}
-      @prefix prefix
+      @statix_conn %{conn | prefix: prefix, sock: __MODULE__}
+
 
       def connect() do
         conn = Statix.Conn.open(@statix_conn)
@@ -39,7 +38,7 @@ defmodule Statix do
       end
       def multi(type_key_val, options \\ []) do
         @statix_conn
-        |> Statix.transmit_multi(@prefix, type_key_val,options)
+        |> Statix.transmit_multi(type_key_val,options)
       end
 
       @doc """
@@ -72,9 +71,9 @@ defmodule Statix do
       :ok
     end
   end
-  def transmit_multi(conn, prefix, type_key_vals, options) do
+  def transmit_multi(conn, type_key_vals, options) do
     if options[:sample_rate] || 1 >  :random.uniform do
-      Statix.Conn.transmit_multi(conn, prefix, type_key_vals, options)
+      Statix.Conn.transmit_multi(conn, type_key_vals, options)
     else
       :ok
     end

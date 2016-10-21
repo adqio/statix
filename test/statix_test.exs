@@ -146,4 +146,8 @@ defmodule StatixTest do
     Sample.set("sample", 2.1, sample_rate: 0.0, tags: ["foo:bar", "baz"])
     refute_received _any
   end
+
+  test "multi/2,3" do
+    
+  end
 end

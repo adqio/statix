@@ -1,5 +1,5 @@
 defmodule Statix.Conn do
-  defstruct [:sock, :header]
+  defstruct [:sock, :header, :prefix]
 
   alias Statix.Packet
 
@@ -19,13 +19,13 @@ defmodule Statix.Conn do
   end
 
   def transmit(%__MODULE__{} = conn, type, key, val, options) when is_binary(val) do
-    Packet.build(conn.header, type, key, val, options)
+    [conn.header, conn.prefix || [] | Packet.build(type, key, val, options)]
     |> transmit(conn.sock)
   end
-  def transmit_multi(%__MODULE__{} = conn, prefix, type_key_vals, options) do
+  def transmit_multi(%__MODULE__{} = conn, type_key_vals, options) do
     [conn.header ,Enum.map(type_key_vals, fn({type,key,val})->
-      [prefix, Packet.build([], type, key, to_string(val), options), "\n"]
-    end)]
+      [conn.prefix || [], Packet.build(type, key, to_string(val), options), "\n"]
+    end)] 
     |> transmit(conn.sock)
   end
 
