@@ -1,4 +1,5 @@
 defmodule Statix do
+  require Logger
   defmacro __using__(_opts) do
     quote location: :keep do
       {host, port, prefix} = Statix.config(__MODULE__)
@@ -73,7 +74,7 @@ defmodule Statix do
   end
   
   def transmit_multi(conn, type_key_vals, options) do
-    if options[:sample_rate] || 1 >  :random.uniform do
+    if Keyword.get(options, :sample_rate, 1.0) >  :rand.uniform do
       Statix.Conn.transmit_multi(conn, type_key_vals, options)
     else
       :ok
